@@ -59,7 +59,7 @@ async def cloudflare(zone_id: str, x_token: Union[str, None] = Header()):
         })
     )
 
-    res = JSONResponse(result.json())
+    res = JSONResponse(result.json(), result.status_code)
     res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
     res.headers["CDN-Cache-Control"] = f"max-age=60"
     return res
