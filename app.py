@@ -60,8 +60,8 @@ async def cloudflare(zone_id: str, x_token: Union[str, None] = Header()):
     )
 
     res = JSONResponse(result.json())
-    res.headers["Cache-Control"] = f"public, max-age=0, s-maxage=0"
-    res.headers["CDN-Cache-Control"] = f"max-age=0"
+    res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
+    res.headers["CDN-Cache-Control"] = f"max-age=60"
     return res
 
 @app.get("/")
