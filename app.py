@@ -34,7 +34,7 @@ def fastapi_serve(dir: str, ref: str, indexes: List[str] = ["index.html", "index
 
 app = FastAPI()
 
-@app.get("/cloudflare")
+@app.get("/api/cloudflare")
 async def cloudflare(zone_id: str, x_token: Union[str, None] = Header()):
     query = Path("analytics_daily.txt").read_text("UTF-8")
 
@@ -46,6 +46,36 @@ async def cloudflare(zone_id: str, x_token: Union[str, None] = Header()):
         "from": before.astimezone(timezone.utc).strftime("%Y-%m-%d"),
         "to": now.astimezone(timezone.utc).strftime("%Y-%m-%d"),
         "limit": 30
+    }
+
+    result = post(
+        url="https://api.cloudflare.com/client/v4/graphql",
+        headers={
+            "Authorization": f"Bearer {x_token}"
+        },
+        data=dumps({
+            "query": query,
+            "variables": variables
+        })
+    )
+
+    res = JSONResponse(result.json())
+    res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
+    res.headers["CDN-Cache-Control"] = f"max-age=60"
+    return res
+
+@app.get("/api/cloudflare2")
+async def cloudflare2(zone_id: str, x_token: Union[str, None] = Header()):
+    query = Path("analytics_hourly.txt").read_text("UTF-8")
+
+    now = datetime.now()
+    before = now - timedelta(**{ "hours": 72 })
+
+    variables = {
+        "zoneTag": zone_id,
+        "from": before.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "to": now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "limit": 72
     }
 
     result = post(

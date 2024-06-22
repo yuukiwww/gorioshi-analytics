@@ -28,7 +28,22 @@ const websites = [
 ];
 
 async function worker(item) {
-  const res = await fetch(`/cloudflare?zone_id=${encodeURIComponent(item.zoneId)}`, {
+  const res = await fetch(`/api/cloudflare?zone_id=${encodeURIComponent(item.zoneId)}`, {
+    headers: {
+      "X-Token": token,
+    },
+  });
+  const json = await res.json();
+  return {
+    domain: item.domain,
+    fg: `rgb(${item.color[0]}, ${item.color[1]}, ${item.color[2]})`,
+    bg: `rgba(${item.color[0]}, ${item.color[1]}, ${item.color[2]}, 0.2)`,
+    json,
+  };
+}
+
+async function worker2(item) {
+  const res = await fetch(`/api/cloudflare2?zone_id=${encodeURIComponent(item.zoneId)}`, {
     headers: {
       "X-Token": token,
     },
@@ -150,6 +165,129 @@ addEventListener("load", () => {
             title: {
               display: true,
               text: "過去30日のキャッシュ済み送受信データ量(GB)の推移",
+            },
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+    });
+
+  Promise.all(websites.map((i) => worker2(i)))
+    .then((results) => {
+      document.querySelector("#loading-2").remove();
+
+      const scale = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].length));
+      const endedAt = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].map((g) => new Date(g["dimensions"]["datetime"]).getTime())).flat());
+      const range = Array.from({ length: scale }, (_, k) => new Date(endedAt - k * 60 * 60 * 1000));
+
+      const ctxUsers = document.querySelector("#users-2").getContext("2d");
+
+      new Chart(ctxUsers, {
+        data: {
+          labels: range.map((d) => d.toLocaleString()).reverse(),
+          datasets: results.map((r) => {
+            return {
+              type: "line",
+              label: r.domain,
+              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["uniq"]?.["uniques"] ?? null).reverse(),
+              borderColor: r.fg,
+              borderWidth: 1,
+              fill: "origin",
+              backgroundColor: r.bg,
+              pointStyle: "star",
+            };
+          }),
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: "過去72時間のユーザー数の推移",
+            },
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      const ctxBytes = document.querySelector("#bytes-2").getContext("2d");
+
+      new Chart(ctxBytes, {
+        data: {
+          labels: range.map((d) => d.toLocaleString()).reverse(),
+          datasets: results.map((r) => {
+            return {
+              type: "line",
+              label: r.domain,
+              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
+              borderColor: r.fg,
+              borderWidth: 1,
+              fill: "origin",
+              backgroundColor: r.bg,
+              pointStyle: "star",
+            };
+          }),
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: "過去72時間の送受信データ量(GB)の推移",
+            },
+            legend: {
+              labels: {
+                usePointStyle: true,
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      const ctxBytes2 = document.querySelector("#bytes2-2").getContext("2d");
+
+      new Chart(ctxBytes2, {
+        data: {
+          labels: range.map((d) => d.toLocaleString()).reverse(),
+          datasets: results.map((r) => {
+            return {
+              type: "line",
+              label: r.domain,
+              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
+              borderColor: r.fg,
+              borderWidth: 1,
+              fill: "origin",
+              backgroundColor: r.bg,
+              pointStyle: "star",
+            };
+          }),
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: "過去72時間のキャッシュ済み送受信データ量(GB)の推移",
             },
             legend: {
               labels: {
