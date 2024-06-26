@@ -59,9 +59,15 @@ async def cloudflare(zone_id: str, x_token: Union[str, None] = Header()):
         })
     )
 
-    res = JSONResponse(result.json())
-    res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
-    res.headers["CDN-Cache-Control"] = f"max-age=60"
+    json = result.json()
+    res = JSONResponse(json)
+    if "success" in json and not json["success"]:
+        res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        res.headers["Cache-Control"] = f"public, max-age=0, s-maxage=0"
+        res.headers["CDN-Cache-Control"] = f"max-age=0"
+    else:
+        res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
+        res.headers["CDN-Cache-Control"] = f"max-age=60"
     return res
 
 @app.get("/api/cloudflare2")
@@ -89,9 +95,15 @@ async def cloudflare2(zone_id: str, x_token: Union[str, None] = Header()):
         })
     )
 
-    res = JSONResponse(result.json())
-    res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
-    res.headers["CDN-Cache-Control"] = f"max-age=60"
+    json = result.json()
+    res = JSONResponse(json)
+    if "success" in json and not json["success"]:
+        res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        res.headers["Cache-Control"] = f"public, max-age=0, s-maxage=0"
+        res.headers["CDN-Cache-Control"] = f"max-age=0"
+    else:
+        res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
+        res.headers["CDN-Cache-Control"] = f"max-age=60"
     return res
 
 @app.get("/")
