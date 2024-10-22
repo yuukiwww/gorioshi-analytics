@@ -7,6 +7,7 @@ from json import dumps
 from requests import post
 from fastapi import FastAPI, Response, Header, status
 from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
+from contextlib import asynccontextmanager
 
 def fastapi_serve(dir: str, ref: str, indexes: List[str] = ["index.html", "index.htm"]) -> Response:
     url_path = urlparse(ref or "/").path
@@ -32,12 +33,20 @@ def fastapi_serve(dir: str, ref: str, indexes: List[str] = ["index.html", "index
 
     return FileResponse(path)
 
-app = FastAPI()
+ctx = {}
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    ctx["daily"] = Path("analytics_daily.txt").read_text("UTF-8")
+    ctx["hourly"] = Path("analytics_hourly.txt").read_text("UTF-8")
+    print(ctx)
+    yield
+    ctx.clear()
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/api/cloudflare")
 async def cloudflare(zone_id: str, x_token: Union[str, None] = Header()):
-    query = Path("analytics_daily.txt").read_text("UTF-8")
-
     now = datetime.now()
     before = now - timedelta(**{ "days": 30 })
 
@@ -54,26 +63,24 @@ async def cloudflare(zone_id: str, x_token: Union[str, None] = Header()):
             "Authorization": f"Bearer {x_token}"
         },
         data=dumps({
-            "query": query,
+            "query": ctx["daily"],
             "variables": variables
         })
     )
 
     json = result.json()
     res = JSONResponse(json)
-    if "success" in json and not json["success"]:
+    if "data" in json and not json["errors"]:
+        res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
+        res.headers["CDN-Cache-Control"] = f"max-age=60"
+    else:
         res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         res.headers["Cache-Control"] = f"public, max-age=0, s-maxage=0"
         res.headers["CDN-Cache-Control"] = f"max-age=0"
-    else:
-        res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
-        res.headers["CDN-Cache-Control"] = f"max-age=60"
     return res
 
 @app.get("/api/cloudflare2")
 async def cloudflare2(zone_id: str, x_token: Union[str, None] = Header()):
-    query = Path("analytics_hourly.txt").read_text("UTF-8")
-
     now = datetime.now()
     before = now - timedelta(**{ "hours": 72 })
 
@@ -90,20 +97,20 @@ async def cloudflare2(zone_id: str, x_token: Union[str, None] = Header()):
             "Authorization": f"Bearer {x_token}"
         },
         data=dumps({
-            "query": query,
+            "query": ctx["hourly"],
             "variables": variables
         })
     )
 
     json = result.json()
     res = JSONResponse(json)
-    if "success" in json and not json["success"]:
+    if "data" in json and not json["errors"]:
+        res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
+        res.headers["CDN-Cache-Control"] = f"max-age=60"
+    else:
         res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         res.headers["Cache-Control"] = f"public, max-age=0, s-maxage=0"
         res.headers["CDN-Cache-Control"] = f"max-age=0"
-    else:
-        res.headers["Cache-Control"] = f"public, max-age=60, s-maxage=60"
-        res.headers["CDN-Cache-Control"] = f"max-age=60"
     return res
 
 @app.get("/")
