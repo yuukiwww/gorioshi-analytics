@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 from json import dumps
+from pprint import pprint
 
 from requests import post
 from fastapi import FastAPI, Response, Header, status
@@ -39,7 +40,7 @@ ctx = {}
 async def lifespan(app: FastAPI):
     ctx["daily"] = Path("analytics_daily.txt").read_text("UTF-8")
     ctx["hourly"] = Path("analytics_hourly.txt").read_text("UTF-8")
-    print(ctx)
+    pprint(ctx)
     yield
     ctx.clear()
 
