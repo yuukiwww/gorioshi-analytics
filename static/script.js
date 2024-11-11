@@ -57,6 +57,33 @@ async function worker2(item) {
   };
 }
 
+function createChart(ctx, labels, datasets, title) {
+  new Chart(ctx, {
+    data: {
+      labels,
+      datasets,
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: title,
+        },
+        legend: {
+          labels: {
+            usePointStyle: true,
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
 addEventListener("load", () => {
   Promise.all(websites.map((i) => worker(i)))
     .then((results) => {
@@ -68,117 +95,63 @@ addEventListener("load", () => {
 
       const ctxUsers = document.querySelector("#users").getContext("2d");
 
-      new Chart(ctxUsers, {
-        data: {
-          labels: range.map((d) => d.toISOString().slice(0, 10)).reverse(),
-          datasets: results.map((r) => {
-            return {
-              type: "line",
-              label: r.domain,
-              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["uniq"]?.["uniques"] ?? null).reverse(),
-              borderColor: r.fg,
-              borderWidth: 1,
-              fill: "origin",
-              backgroundColor: r.bg,
-              pointStyle: "star",
-            };
-          }),
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "過去30日のユーザー数の推移",
-            },
-            legend: {
-              labels: {
-                usePointStyle: true,
-              },
-            },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
+      createChart(
+        ctxUsers,
+        range.map((d) => d.toISOString().slice(0, 10)).reverse(),
+        results.map((r) => {
+          return {
+            type: "line",
+            label: r.domain,
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["uniq"]?.["uniques"] ?? null).reverse(),
+            borderColor: r.fg,
+            borderWidth: 1,
+            fill: "origin",
+            backgroundColor: r.bg,
+            pointStyle: "star",
+          };
+        }),
+        "過去30日のユーザー数の推移",
+      );
 
       const ctxBytes = document.querySelector("#bytes").getContext("2d");
 
-      new Chart(ctxBytes, {
-        data: {
-          labels: range.map((d) => d.toISOString().slice(0, 10)).reverse(),
-          datasets: results.map((r) => {
-            return {
-              type: "line",
-              label: r.domain,
-              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
-              borderColor: r.fg,
-              borderWidth: 1,
-              fill: "origin",
-              backgroundColor: r.bg,
-              pointStyle: "star",
-            };
-          }),
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "過去30日の送受信データ量(GB)の推移",
-            },
-            legend: {
-              labels: {
-                usePointStyle: true,
-              },
-            },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
+      createChart(
+        ctxBytes,
+        range.map((d) => d.toISOString().slice(0, 10)).reverse(),
+        results.map((r) => {
+          return {
+            type: "line",
+            label: r.domain,
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
+            borderColor: r.fg,
+            borderWidth: 1,
+            fill: "origin",
+            backgroundColor: r.bg,
+            pointStyle: "star",
+          };
+        }),
+        "過去30日の送受信データ量(GB)の推移",
+      );
 
       const ctxBytes2 = document.querySelector("#bytes2").getContext("2d");
 
-      new Chart(ctxBytes2, {
-        data: {
-          labels: range.map((d) => d.toISOString().slice(0, 10)).reverse(),
-          datasets: results.map((r) => {
-            return {
-              type: "line",
-              label: r.domain,
-              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
-              borderColor: r.fg,
-              borderWidth: 1,
-              fill: "origin",
-              backgroundColor: r.bg,
-              pointStyle: "star",
-            };
-          }),
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "過去30日のキャッシュ済み送受信データ量(GB)の推移",
-            },
-            legend: {
-              labels: {
-                usePointStyle: true,
-              },
-            },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
+      createChart(
+        ctxBytes2,
+        range.map((d) => d.toISOString().slice(0, 10)).reverse(),
+        results.map((r) => {
+          return {
+            type: "line",
+            label: r.domain,
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
+            borderColor: r.fg,
+            borderWidth: 1,
+            fill: "origin",
+            backgroundColor: r.bg,
+            pointStyle: "star",
+          };
+        }),
+        "過去30日のキャッシュ済み送受信データ量(GB)の推移",
+      );
     });
 
   Promise.all(websites.map((i) => worker2(i)))
@@ -191,116 +164,62 @@ addEventListener("load", () => {
 
       const ctxUsers = document.querySelector("#users-2").getContext("2d");
 
-      new Chart(ctxUsers, {
-        data: {
-          labels: range.map((d) => d.toLocaleString()).reverse(),
-          datasets: results.map((r) => {
-            return {
-              type: "line",
-              label: r.domain,
-              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["uniq"]?.["uniques"] ?? null).reverse(),
-              borderColor: r.fg,
-              borderWidth: 1,
-              fill: "origin",
-              backgroundColor: r.bg,
-              pointStyle: "star",
-            };
-          }),
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "過去72時間のユーザー数の推移",
-            },
-            legend: {
-              labels: {
-                usePointStyle: true,
-              },
-            },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
+      createChart(
+        ctxUsers,
+        range.map((d) => d.toLocaleString()).reverse(),
+        results.map((r) => {
+          return {
+            type: "line",
+            label: r.domain,
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["uniq"]?.["uniques"] ?? null).reverse(),
+            borderColor: r.fg,
+            borderWidth: 1,
+            fill: "origin",
+            backgroundColor: r.bg,
+            pointStyle: "star",
+          };
+        }),
+        "過去72時間のユーザー数の推移",
+      )
 
       const ctxBytes = document.querySelector("#bytes-2").getContext("2d");
 
-      new Chart(ctxBytes, {
-        data: {
-          labels: range.map((d) => d.toLocaleString()).reverse(),
-          datasets: results.map((r) => {
-            return {
-              type: "line",
-              label: r.domain,
-              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
-              borderColor: r.fg,
-              borderWidth: 1,
-              fill: "origin",
-              backgroundColor: r.bg,
-              pointStyle: "star",
-            };
-          }),
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "過去72時間の送受信データ量(GB)の推移",
-            },
-            legend: {
-              labels: {
-                usePointStyle: true,
-              },
-            },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
+      createChart(
+        ctxBytes,
+        range.map((d) => d.toLocaleString()).reverse(),
+        results.map((r) => {
+          return {
+            type: "line",
+            label: r.domain,
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
+            borderColor: r.fg,
+            borderWidth: 1,
+            fill: "origin",
+            backgroundColor: r.bg,
+            pointStyle: "star",
+          };
+        }),
+        "過去72時間の送受信データ量(GB)の推移",
+      )
 
       const ctxBytes2 = document.querySelector("#bytes2-2").getContext("2d");
 
-      new Chart(ctxBytes2, {
-        data: {
-          labels: range.map((d) => d.toLocaleString()).reverse(),
-          datasets: results.map((r) => {
-            return {
-              type: "line",
-              label: r.domain,
-              data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
-              borderColor: r.fg,
-              borderWidth: 1,
-              fill: "origin",
-              backgroundColor: r.bg,
-              pointStyle: "star",
-            };
-          }),
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "過去72時間のキャッシュ済み送受信データ量(GB)の推移",
-            },
-            legend: {
-              labels: {
-                usePointStyle: true,
-              },
-            },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
+      createChart(
+        ctxBytes2,
+        range.map((d) => d.toLocaleString()).reverse(),
+        results.map((r) => {
+          return {
+            type: "line",
+            label: r.domain,
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
+            borderColor: r.fg,
+            borderWidth: 1,
+            fill: "origin",
+            backgroundColor: r.bg,
+            pointStyle: "star",
+          };
+        }),
+        "過去72時間のキャッシュ済み送受信データ量(GB)の推移",
+      );
     });
 });
