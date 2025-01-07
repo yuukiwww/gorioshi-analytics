@@ -1,27 +1,31 @@
-{
+query GetZoneAnalytics($zoneTag: string, $from: string, $to: string) {
   viewer {
-    zones(filter: {
-      zoneTag: $zoneTag
-    }) {
-      httpRequests1hGroups(
-        orderBy: [datetime_ASC],
-        limit: $limit,
-        filter: {
-          datetime_gt: $from,
-          datetime_leq: $to
+    zones(filter: {zoneTag: $zoneTag}) {
+      totals: httpRequests1hGroups(limit: 10000, filter: {datetime_gt: $from, datetime_leq: $to}) {
+        uniq {
+          uniques
+          __typename
         }
-      ) {
+        __typename
+      }
+      zones: httpRequests1hGroups(orderBy: [datetime_ASC], limit: 10000, filter: {datetime_gt: $from, datetime_leq: $to}) {
         dimensions {
-          datetime
+          timeslot: datetime
+          __typename
+        }
+        uniq {
+          uniques
+          __typename
         }
         sum {
           bytes
           cachedBytes
+          __typename
         }
-        uniq {
-          uniques
-        }
+        __typename
       }
+      __typename
     }
+    __typename
   }
 }

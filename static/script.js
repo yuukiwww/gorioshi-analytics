@@ -89,8 +89,8 @@ addEventListener("load", () => {
     .then((results) => {
       document.querySelector("#loading").remove();
 
-      const scale = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].length));
-      const endedAt = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].map((g) => new Date(g["dimensions"]["date"]).getTime())).flat());
+      const scale = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["zones"].length));
+      const endedAt = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["zones"].map((g) => new Date(g["dimensions"]["timeslot"]).getTime())).flat());
       const range = Array.from({ length: scale }, (_, k) => new Date(endedAt - k * 24 * 60 * 60 * 1000));
 
       const ctxUsers = document.querySelector("#users").getContext("2d");
@@ -99,10 +99,15 @@ addEventListener("load", () => {
         ctxUsers,
         range.map((d) => d.toISOString().slice(0, 10)).reverse(),
         results.map((r) => {
+          const total = Intl.NumberFormat('en-US', {
+            notation: "compact",
+            maximumFractionDigits: 1,
+          }).format(r.json["data"]["viewer"]["zones"][0]["totals"][0]["uniq"]["uniques"]);
+
           return {
             type: "line",
-            label: r.domain,
-            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["uniq"]?.["uniques"] ?? null).reverse(),
+            label: r.domain + " - (" + total + ")",
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["zones"].find((g) => g["dimensions"]["timeslot"] === d.toISOString().slice(0, 10))?.["uniq"]?.["uniques"] ?? null).reverse(),
             borderColor: r.fg,
             borderWidth: 1,
             fill: "origin",
@@ -122,7 +127,7 @@ addEventListener("load", () => {
           return {
             type: "line",
             label: r.domain,
-            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["zones"].find((g) => g["dimensions"]["timeslot"] === d.toISOString().slice(0, 10))?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
             borderColor: r.fg,
             borderWidth: 1,
             fill: "origin",
@@ -142,7 +147,7 @@ addEventListener("load", () => {
           return {
             type: "line",
             label: r.domain,
-            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1dGroups"].find((g) => g["dimensions"]["date"] === d.toISOString().slice(0, 10))?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["zones"].find((g) => g["dimensions"]["timeslot"] === d.toISOString().slice(0, 10))?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
             borderColor: r.fg,
             borderWidth: 1,
             fill: "origin",
@@ -158,8 +163,8 @@ addEventListener("load", () => {
     .then((results) => {
       document.querySelector("#loading-2").remove();
 
-      const scale = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].length));
-      const endedAt = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].map((g) => new Date(g["dimensions"]["datetime"]).getTime())).flat());
+      const scale = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["zones"].length));
+      const endedAt = Math.max(...results.map((r) => r.json["data"]["viewer"]["zones"][0]["zones"].map((g) => new Date(g["dimensions"]["timeslot"]).getTime())).flat());
       const range = Array.from({ length: scale }, (_, k) => new Date(endedAt - k * 60 * 60 * 1000));
 
       const ctxUsers = document.querySelector("#users-2").getContext("2d");
@@ -168,10 +173,15 @@ addEventListener("load", () => {
         ctxUsers,
         range.map((d) => d.toLocaleString()).reverse(),
         results.map((r) => {
+          const total = Intl.NumberFormat('en-US', {
+            notation: "compact",
+            maximumFractionDigits: 1,
+          }).format(r.json["data"]["viewer"]["zones"][0]["totals"][0]["uniq"]["uniques"]);
+
           return {
             type: "line",
-            label: r.domain,
-            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["uniq"]?.["uniques"] ?? null).reverse(),
+            label: r.domain + " - (" + total + ")",
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["zones"].find((g) => g["dimensions"]["timeslot"] === d.toISOString().slice(0, 19) + "Z")?.["uniq"]?.["uniques"] ?? null).reverse(),
             borderColor: r.fg,
             borderWidth: 1,
             fill: "origin",
@@ -191,7 +201,7 @@ addEventListener("load", () => {
           return {
             type: "line",
             label: r.domain,
-            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["zones"].find((g) => g["dimensions"]["timeslot"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["bytes"] / 1000 ** 3 ?? null).reverse(),
             borderColor: r.fg,
             borderWidth: 1,
             fill: "origin",
@@ -211,7 +221,7 @@ addEventListener("load", () => {
           return {
             type: "line",
             label: r.domain,
-            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["httpRequests1hGroups"].find((g) => g["dimensions"]["datetime"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
+            data: range.map((d) => r.json["data"]["viewer"]["zones"][0]["zones"].find((g) => g["dimensions"]["timeslot"] === d.toISOString().slice(0, 19) + "Z")?.["sum"]?.["cachedBytes"] / 1000 ** 3 ?? null).reverse(),
             borderColor: r.fg,
             borderWidth: 1,
             fill: "origin",
