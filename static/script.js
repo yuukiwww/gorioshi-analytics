@@ -99,7 +99,7 @@ addEventListener("load", () => {
         ctxUsers,
         range.map((d) => d.toISOString().slice(0, 10)).reverse(),
         results.map((r) => {
-          const total = Intl.NumberFormat('en-US', {
+          const total = Intl.NumberFormat(navigator.language || "en-US", {
             notation: "compact",
             maximumFractionDigits: 1,
           }).format(r.json["data"]["viewer"]["zones"][0]["totals"][0]["uniq"]["uniques"]);
@@ -173,7 +173,7 @@ addEventListener("load", () => {
         ctxUsers,
         range.map((d) => d.toLocaleString()).reverse(),
         results.map((r) => {
-          const total = Intl.NumberFormat('en-US', {
+          const total = Intl.NumberFormat(navigator.language || "en-US", {
             notation: "compact",
             maximumFractionDigits: 1,
           }).format(r.json["data"]["viewer"]["zones"][0]["totals"][0]["uniq"]["uniques"]);
