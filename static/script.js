@@ -97,7 +97,7 @@ addEventListener("load", () => {
 
       createChart(
         ctxUsers,
-        range.map((d) => d.toISOString().slice(0, 10)).reverse(),
+        range.map((d) => d.toISOString().split("T")[0]).reverse(),
         results.map((r) => {
           const total = Intl.NumberFormat(navigator.language || "en-US", {
             notation: "compact",
@@ -122,7 +122,7 @@ addEventListener("load", () => {
 
       createChart(
         ctxBytes,
-        range.map((d) => d.toISOString().slice(0, 10)).reverse(),
+        range.map((d) => d.toISOString().split("T")[0]).reverse(),
         results.map((r) => {
           return {
             type: "line",
@@ -142,7 +142,7 @@ addEventListener("load", () => {
 
       createChart(
         ctxBytes2,
-        range.map((d) => d.toISOString().slice(0, 10)).reverse(),
+        range.map((d) => d.toISOString().split("T")[0]).reverse(),
         results.map((r) => {
           return {
             type: "line",
