@@ -25,6 +25,11 @@ const websites = [
     domain: "litey.trade",
     color: [255, 215, 0],
   },
+  {
+    zoneId: "257bb5537846a8b5b08ab97c88a45280",
+    domain: "tjaf.party",
+    color: [187, 66, 246],
+  },
 ];
 
 async function worker(item) {
